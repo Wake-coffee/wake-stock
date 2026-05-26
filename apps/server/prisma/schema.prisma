@@ -1,0 +1,73 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum ProductStatus {
+  DISPONIBLE
+  AGOTADO
+  BAJO_STOCK
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String   // Hashed con bcrypt
+  name      String
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Supplier {
+  id        String    @id @default(uuid())
+  name      String    @unique
+  email     String?
+  phone     String?
+  notes     String?
+  website   String?
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("suppliers")
+}
+
+model Product {
+  id           String        @id @default(uuid())
+  name         String        @unique
+  status       ProductStatus @default(DISPONIBLE)
+  stock        Int           @default(0)
+  minQuantity  Int           @default(1)
+  maxQuantity  Int           @default(10)
+  durationDays Int?
+  imageUrl     String?
+  
+  // Relación Opcional con Proveedor
+  supplierId   String?
+  supplier     Supplier?     @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@map("products")
+}
+
+model ChecklistReport {
+  id          String   @id @default(uuid())
+  submittedBy String
+  items       Json     // Instantánea del reporte en formato JSON
+  createdAt   DateTime @default(now())
+
+  @@map("checklist_reports")
+}
