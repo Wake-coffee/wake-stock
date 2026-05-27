@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { prisma } from "../prisma.js";
+import { authMiddleware, requireRole } from "../middleware/auth.js";
 
 const router: Router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "secret-token-wake-stock-2026";
@@ -57,7 +58,7 @@ router.post("/login", async (req: Request, res: Response): Promise<any> => {
 });
 
 // Registrar nuevo usuario
-router.post("/register", async (req: Request, res: Response): Promise<any> => {
+router.post("/register", authMiddleware, requireRole("ADMIN"), async (req: Request, res: Response): Promise<any> => {
   try {
     const { email, password, name, role } = req.body;
 
