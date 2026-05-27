@@ -75,6 +75,10 @@ export default function InventarioPage() {
 
   const handleStockInputChange = (id: string, value: number) => {
     if (value < 0) return;
+    const product = products.find((p) => p.id === id);
+    if (product && user?.role === "USER" && value > product.maxQuantity) {
+      value = product.maxQuantity;
+    }
     setStockInputs((prev) => ({ ...prev, [id]: value }));
   };
 
@@ -82,9 +86,20 @@ export default function InventarioPage() {
     const newStock = stockInputs[id];
     if (newStock === undefined || newStock < 0) return;
 
+    const product = products.find((p) => p.id === id);
+    if (!product) return;
+
     setUpdatingStockId(id);
     setError(null);
     setSuccess(null);
+
+    if (user?.role === "USER" && newStock > product.maxQuantity) {
+      setError(
+        `El stock no puede superar el máximo establecido de ${product.maxQuantity} unidades.`,
+      );
+      setUpdatingStockId(null);
+      return;
+    }
 
     try {
       const response = await api.patch(`/api/products/${id}/stock`, {
@@ -536,8 +551,13 @@ export default function InventarioPage() {
                                 onClick={() =>
                                   handleStockInputChange(
                                     product.id,
-                                    (stockInputs[product.id] ?? product.stock) +
-                                      1,
+                                    Math.min(
+                                      (stockInputs[product.id] ??
+                                        product.stock) + 1,
+                                      user?.role === "USER"
+                                        ? product.maxQuantity
+                                        : Infinity,
+                                    ),
                                   )
                                 }
                                 className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-zinc-50 text-zinc-500 hover:text-[#2B4236] transition-colors cursor-pointer"
@@ -548,13 +568,14 @@ export default function InventarioPage() {
                                   viewBox="0 0 24 24"
                                   strokeWidth={2.5}
                                   stroke="currentColor"
-                                  className="w-3.5 h-3.5"
-                                />
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  d="M12 4.5v15m7.5-7.5h-15"
-                                />
+                                  className="w-3.5 h-3.5 text-zinc-600"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M12 4.5v15m7.5-7.5h-15"
+                                  />
+                                </svg>
                               </button>
                             </div>
 
