@@ -32,6 +32,8 @@ function EditarForm() {
     durationDays: "" as string | number,
     imageUrl: "",
     supplierId: "",
+    unit: "UNIDAD",
+    notes: "",
   });
 
   // Estado del formulario de Proveedor
@@ -98,6 +100,8 @@ function EditarForm() {
                   : "",
               imageUrl: data.imageUrl || "",
               supplierId: data.supplierId || "",
+              unit: data.unit || "UNIDAD",
+              notes: data.notes || "",
             });
           } else {
             setSupplierForm({
@@ -154,6 +158,8 @@ function EditarForm() {
               : null,
           imageUrl: productForm.imageUrl || null,
           supplierId: productForm.supplierId || null,
+          unit: productForm.unit,
+          notes: productForm.notes || null,
         };
         response = isEditMode
           ? await api.put(endpoint, body)
@@ -384,7 +390,7 @@ function EditarForm() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4!">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4!">
                 <div>
                   <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2! pl-1!">
                     Días de Duración (Consumo)
@@ -405,6 +411,26 @@ function EditarForm() {
                     }
                     className="w-full rounded-2xl bg-white border border-zinc-200 py-3! px-4! text-sm font-medium text-zinc-900 placeholder-zinc-400 outline-none transition-all duration-200 focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2! pl-1!">
+                    Unidad de Medida
+                  </label>
+                  <select
+                    value={productForm.unit}
+                    onChange={(e) =>
+                      setProductForm({ ...productForm, unit: e.target.value })
+                    }
+                    className="w-full rounded-2xl bg-white border border-zinc-200 py-3! px-4! text-sm font-bold text-zinc-800 outline-none transition-all duration-200 focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm cursor-pointer"
+                  >
+                    <option value="UNIDAD">Unidad</option>
+                    <option value="KG">Kg</option>
+                    <option value="GRAMOS">Gramos</option>
+                    <option value="PAQUETE">Paquete</option>
+                    <option value="LITRO">Litro</option>
+                    <option value="CAJA">Caja</option>
+                  </select>
                 </div>
 
                 <div>
@@ -443,6 +469,21 @@ function EditarForm() {
                     setProductForm({ ...productForm, imageUrl: e.target.value })
                   }
                   className="w-full rounded-2xl bg-white border border-zinc-200 py-3! px-4! text-sm font-medium text-zinc-900 placeholder-zinc-400 outline-none transition-all duration-200 focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2! pl-1!">
+                  Notas del Producto
+                </label>
+                <textarea
+                  rows={3}
+                  placeholder="Instrucciones de almacenamiento, observaciones..."
+                  value={productForm.notes}
+                  onChange={(e) =>
+                    setProductForm({ ...productForm, notes: e.target.value })
+                  }
+                  className="w-full rounded-2xl bg-white border border-zinc-200 py-3! px-4! text-sm font-medium text-zinc-900 placeholder-zinc-400 outline-none transition-all duration-200 focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm resize-y"
                 />
               </div>
             </div>

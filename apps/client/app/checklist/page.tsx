@@ -15,6 +15,7 @@ interface Product {
   maxQuantity: number;
   status: "DISPONIBLE" | "AGOTADO" | "BAJO_STOCK";
   imageUrl: string | null;
+  notes: string | null;
   supplier: {
     name: string;
   } | null;
@@ -100,6 +101,7 @@ export default function ChecklistPage() {
         maxQuantity: p.maxQuantity,
         status: p.status,
         supplierName: p.supplier?.name || "Sin Proveedor",
+        notes: p.notes || null,
       }));
 
     try {
@@ -301,7 +303,7 @@ export default function ChecklistPage() {
             </div>
           ) : (
             /* Cuadrícula de Tarjetas con gap-2 estricto alineado con la Home */
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pb-32!">
               {filteredProducts.map((product) => {
                 const isSelected = selectedIds.includes(product.id);
 

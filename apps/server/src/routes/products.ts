@@ -1,7 +1,7 @@
 import { Router, Response } from 'express';
 import { prisma } from '../prisma.js';
 import { authMiddleware, requireRole, AuthenticatedRequest } from '../middleware/auth.js';
-import { ProductStatus } from '@prisma/client';
+import { ProductStatus, ProductUnit } from '@prisma/client';
 
 const router: Router = Router();
 
@@ -71,7 +71,7 @@ router.get('/:id', authMiddleware, async (req: AuthenticatedRequest, res: Respon
 // 3. POST /api/products → crear (solo ADMIN)
 router.post('/', authMiddleware, requireRole('ADMIN'), async (req: AuthenticatedRequest, res: Response): Promise<any> => {
   try {
-    const { name, stock, minQuantity, maxQuantity, durationDays, imageUrl, supplierId } = req.body;
+    const { name, stock, minQuantity, maxQuantity, durationDays, imageUrl, supplierId, unit, notes } = req.body;
 
     if (!name) {
       return res.status(400).json({ error: 'El nombre del producto es obligatorio' });
@@ -113,8 +113,10 @@ router.post('/', authMiddleware, requireRole('ADMIN'), async (req: Authenticated
         maxQuantity: parsedMax,
         durationDays: parsedDuration,
         imageUrl: imageUrl || null,
+        notes: notes || null,
         supplierId: supplierId || null,
         status,
+        unit: (unit as ProductUnit) || 'UNIDAD',
       },
       include: {
         supplier: {
@@ -139,7 +141,7 @@ router.post('/', authMiddleware, requireRole('ADMIN'), async (req: Authenticated
 router.put('/:id', authMiddleware, requireRole('ADMIN'), async (req: AuthenticatedRequest, res: Response): Promise<any> => {
   try {
     const { id } = req.params;
-    const { name, stock, minQuantity, maxQuantity, durationDays, imageUrl, supplierId } = req.body;
+    const { name, stock, minQuantity, maxQuantity, durationDays, imageUrl, supplierId, unit, notes } = req.body;
 
     if (!name) {
       return res.status(400).json({ error: 'El nombre del producto es obligatorio' });
@@ -192,8 +194,10 @@ router.put('/:id', authMiddleware, requireRole('ADMIN'), async (req: Authenticat
         maxQuantity: parsedMax,
         durationDays: parsedDuration,
         imageUrl: imageUrl || null,
+        notes: notes || null,
         supplierId: supplierId || null,
         status,
+        unit: (unit as ProductUnit) || 'UNIDAD',
       },
       include: {
         supplier: {

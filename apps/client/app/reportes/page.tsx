@@ -15,6 +15,7 @@ interface ReportItem {
   maxQuantity: number;
   status: string;
   supplierName: string;
+  notes?: string | null;
 }
 
 interface Report {
@@ -305,6 +306,17 @@ export default function ReportesPage() {
                                     Mínimo: {item.minQuantity} uds.
                                   </span>
                                 </div>
+
+                                {item.notes && (
+                                  <div className="mt-3! pt-3! border-t border-zinc-100">
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
+                                      Notas
+                                    </span>
+                                    <p className="mt-1! text-xs font-medium text-zinc-600 bg-zinc-50 rounded-xl px-3! py-2! border border-zinc-200">
+                                      {item.notes}
+                                    </p>
+                                  </div>
+                                )}
                               </div>
                             );
                           })}

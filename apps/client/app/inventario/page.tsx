@@ -16,6 +16,7 @@ interface Product {
   maxQuantity: number;
   status: "DISPONIBLE" | "AGOTADO" | "BAJO_STOCK";
   imageUrl: string | null;
+  notes: string | null;
   durationDays: number | null;
   supplierId: string | null;
   supplier: {
@@ -496,6 +497,18 @@ export default function InventarioPage() {
                             </div>
                           </div>
                         </div>
+
+                        {/* Notas */}
+                        {product.notes && (
+                          <div>
+                            <span className="text-xs font-black text-zinc-400 uppercase tracking-widest">
+                              Notas
+                            </span>
+                            <p className="mt-1.5! text-sm font-medium text-zinc-700 bg-zinc-50 rounded-xl px-4! py-3! border border-zinc-200">
+                              {product.notes}
+                            </p>
+                          </div>
+                        )}
 
                         {/* Fila Inferior de Acciones */}
                         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between border-t border-zinc-200 pt-5! gap-4!">

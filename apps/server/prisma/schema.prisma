@@ -17,6 +17,15 @@ enum ProductStatus {
   BAJO_STOCK
 }
 
+enum ProductUnit {
+  UNIDAD
+  KG
+  GRAMOS
+  PAQUETE
+  LITRO
+  CAJA
+}
+
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
@@ -47,12 +56,14 @@ model Product {
   id           String        @id @default(uuid())
   name         String        @unique
   status       ProductStatus @default(DISPONIBLE)
+  unit         ProductUnit   @default(UNIDAD)
   stock        Int           @default(0)
   minQuantity  Int           @default(1)
   maxQuantity  Int           @default(10)
   durationDays Int?
   imageUrl     String?
-  
+  notes        String?
+
   // Relación Opcional con Proveedor
   supplierId   String?
   supplier     Supplier?     @relation(fields: [supplierId], references: [id], onDelete: SetNull)
