@@ -430,12 +430,12 @@ export default function InventarioPage() {
                     {/* Cabecera del Acordeón */}
                     <div
                       onClick={() => toggleExpand(product.id)}
-                      className="group p-4! relative flex items-center justify-between cursor-pointer select-none box-border"
+                      className="group p-4! relative flex flex-col md:flex-row md:items-center md:justify-between cursor-pointer select-none box-border gap-3!"
                     >
-                      <div className="flex items-center gap-4 flex-1 min-w-0 pl-1!">
+                      <div className="flex items-start gap-3 flex-1 min-w-0">
                         {/* Indicador de flecha */}
                         <div
-                          className={`text-zinc-400 transition-transform duration-300 ${isExpanded ? "rotate-90 text-[#2B4236]" : ""}`}
+                          className={`text-zinc-400 transition-transform duration-300 shrink-0 mt-0.5 ${isExpanded ? "rotate-90 text-[#2B4236]" : ""}`}
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -453,8 +453,8 @@ export default function InventarioPage() {
                           </svg>
                         </div>
 
-                        <div className="min-w-0">
-                          <h3 className="font-bold text-zinc-900 text-base group-hover:text-[#2B4236] transition-colors duration-200 line-clamp-2">
+                        <div className="flex-1">
+                          <h3 className="font-bold text-zinc-900 text-base group-hover:text-[#2B4236] transition-colors duration-200 whitespace-normal">
                             {product.name}
                           </h3>
                           <div className="flex flex-wrap items-center gap-1.5 mt-1!">
