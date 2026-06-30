@@ -637,21 +637,17 @@ export default function InventarioPage() {
                               </button>
 
                               <input
-                                type="text"
-                                inputMode="decimal"
+                                type="number"
+                                step="0.01"
+                                min="0"
                                 value={stockInputs[product.id] ?? product.stock}
-                                onChange={(e) => {
-                                  const val = e.target.value;
-                                  if (val === "") {
-                                    handleStockInputChange(product.id, 0);
-                                  } else {
-                                    const num = parseFloat(val);
-                                    if (!isNaN(num)) {
-                                      handleStockInputChange(product.id, num);
-                                    }
-                                  }
-                                }}
-                                className="w-16 text-center bg-transparent border-none text-zinc-900 text-sm font-bold focus:outline-none"
+                                onChange={(e) =>
+                                  handleStockInputChange(
+                                    product.id,
+                                    parseFloat(e.target.value) || 0,
+                                  )
+                                }
+                                className="w-16 text-center bg-transparent border-none text-zinc-900 text-sm font-bold focus:outline-none [-moz-appearance:textfield] [&::-webkit-outer-spin-button]:margin-0 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:margin-0 [&::-webkit-inner-spin-button]:appearance-none"
                               />
 
                               <button
