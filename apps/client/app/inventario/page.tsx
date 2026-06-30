@@ -44,7 +44,7 @@ export default function InventarioPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const [updatingStockId, setUpdatingStockId] = useState<string | null>(null);
-  const [stockInputs, setStockInputs] = useState<Record<string, number>>({});
+  const [stockInputs, setStockInputs] = useState<Record<string, string | number>>({});
 
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -89,8 +89,9 @@ export default function InventarioPage() {
   };
 
   const handleSaveStock = async (id: string) => {
-    const newStock = stockInputs[id];
-    if (newStock === undefined || newStock < 0) return;
+    const stockValue = stockInputs[id];
+    const newStock = typeof stockValue === "string" ? parseFloat(stockValue.replace(",", ".")) : stockValue;
+    if (newStock === undefined || isNaN(newStock) || newStock < 0) return;
 
     const product = products.find((p) => p.id === id);
     if (!product) return;
@@ -609,15 +610,17 @@ export default function InventarioPage() {
                             </span>
                             <div className="flex items-center rounded-xl border border-zinc-200 bg-white p-1!">
                               <button
-                                onClick={() =>
+                                onClick={() => {
+                                  const currentValue = stockInputs[product.id] ?? product.stock;
+                                  const currentNum = typeof currentValue === "string" ? parseFloat(currentValue.replace(",", ".")) : currentValue;
                                   handleStockInputChange(
                                     product.id,
                                     Math.max(
                                       0,
-                                      Math.round(((stockInputs[product.id] ?? product.stock) - 0.5) * 100) / 100,
+                                      Math.round((currentNum - 0.5) * 100) / 100,
                                     ),
-                                  )
-                                }
+                                  );
+                                }}
                                 className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-zinc-50 text-zinc-500 hover:text-[#2B4236] transition-colors cursor-pointer"
                               >
                                 <svg
@@ -646,29 +649,31 @@ export default function InventarioPage() {
                                   if (val === "") {
                                     handleStockInputChange(product.id, 0);
                                   } else if (/^[0-9.,]*$/.test(val)) {
-                                    // Reemplazar coma por punto para parseFloat
-                                    const normalized = val.replace(",", ".");
-                                    const num = parseFloat(normalized);
-                                    if (!isNaN(num) && num >= 0) {
-                                      handleStockInputChange(product.id, num);
-                                    }
+                                    // Guardar el string exacto que escribió
+                                    // Al guardar en BD se convierte a número
+                                    setStockInputs((prev) => ({
+                                      ...prev,
+                                      [product.id]: val
+                                    }));
                                   }
                                 }}
                                 className="w-16 text-center bg-transparent border-none text-zinc-900 text-sm font-bold focus:outline-none"
                               />
 
                               <button
-                                onClick={() =>
+                                onClick={() => {
+                                  const currentValue = stockInputs[product.id] ?? product.stock;
+                                  const currentNum = typeof currentValue === "string" ? parseFloat(currentValue.replace(",", ".")) : currentValue;
                                   handleStockInputChange(
                                     product.id,
                                     Math.min(
-                                      Math.round(((stockInputs[product.id] ?? product.stock) + 0.5) * 100) / 100,
+                                      Math.round((currentNum + 0.5) * 100) / 100,
                                       user?.role === "USER"
                                         ? product.maxQuantity
                                         : Infinity,
                                     ),
-                                  )
-                                }
+                                  );
+                                }}
                                 className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-zinc-50 text-zinc-500 hover:text-[#2B4236] transition-colors cursor-pointer"
                               >
                                 <svg
