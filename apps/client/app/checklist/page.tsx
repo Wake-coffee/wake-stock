@@ -109,6 +109,7 @@ export default function ChecklistPage() {
         minQuantity: p.minQuantity,
         maxQuantity: p.maxQuantity,
         status: p.status,
+        unit: p.unit,
         supplierName: p.supplier?.name || "Sin Proveedor",
         notes: p.notes || null,
       }));

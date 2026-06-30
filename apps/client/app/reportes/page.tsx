@@ -14,6 +14,7 @@ interface ReportItem {
   minQuantity: number;
   maxQuantity: number;
   status: string;
+  unit: string;
   supplierName: string;
   notes?: string | null;
 }
@@ -81,6 +82,15 @@ export default function ReportesPage() {
 
     return matchesUser || matchesProduct;
   });
+
+  const UNIT_LABELS: Record<string, string> = {
+    UNIDAD: "uds",
+    KG: "kg",
+    GRAMOS: "gr",
+    PAQUETE: "pack",
+    LITRO: "l",
+    CAJA: "box",
+  };
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -299,11 +309,11 @@ export default function ReportesPage() {
                                   <span>
                                     Stock Reportado:{" "}
                                     <strong className="text-[#2B4236] font-bold">
-                                      {item.stock} uds.
+                                      {item.stock} {UNIT_LABELS[item.unit] ?? "uds"}.
                                     </strong>
                                   </span>
                                   <span className="text-zinc-400">
-                                    Mínimo: {item.minQuantity} uds.
+                                    Mínimo: {item.minQuantity} {UNIT_LABELS[item.unit] ?? "uds"}.
                                   </span>
                                 </div>
 
