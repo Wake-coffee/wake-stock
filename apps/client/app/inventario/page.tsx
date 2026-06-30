@@ -44,10 +44,13 @@ export default function InventarioPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const [updatingStockId, setUpdatingStockId] = useState<string | null>(null);
-  const [stockInputs, setStockInputs] = useState<Record<string, string | number>>({});
+  const [stockInputs, setStockInputs] = useState<
+    Record<string, string | number>
+  >({});
 
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
 
   useEffect(() => {
     async function loadProducts() {
@@ -90,7 +93,10 @@ export default function InventarioPage() {
 
   const handleSaveStock = async (id: string) => {
     const stockValue = stockInputs[id];
-    const newStock = typeof stockValue === "string" ? parseFloat(stockValue.replace(",", ".")) : stockValue;
+    const newStock =
+      typeof stockValue === "string"
+        ? parseFloat(stockValue.replace(",", "."))
+        : stockValue;
     if (newStock === undefined || isNaN(newStock) || newStock < 0) return;
 
     const product = products.find((p) => p.id === id);
@@ -185,6 +191,31 @@ export default function InventarioPage() {
     }
   };
 
+  const handleGenerateReport = async () => {
+    setIsGeneratingReport(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const response = await api.post("/api/reports/inventory-pdf");
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || "Error al generar el reporte");
+      }
+
+      setSuccess("✓ Reporte generado y enviado a reportes@wakecoffee.es");
+      setTimeout(() => setSuccess(null), 4000);
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Error al generar el reporte de inventario",
+      );
+    } finally {
+      setIsGeneratingReport(false);
+    }
+  };
+
   const filteredProducts = products.filter((product) => {
     const matchesSearch = product.name
       .toLowerCase()
@@ -208,8 +239,12 @@ export default function InventarioPage() {
   const isAdmin = user?.role === "ADMIN";
 
   const UNIT_LABELS: Record<string, string> = {
-    UNIDAD: "uds", KG: "kg", GRAMOS: "gr",
-    PAQUETE: "pack", LITRO: "l", CAJA: "box",
+    UNIDAD: "uds",
+    KG: "kg",
+    GRAMOS: "gr",
+    PAQUETE: "pack",
+    LITRO: "l",
+    CAJA: "box",
   };
 
   return (
@@ -353,8 +388,7 @@ export default function InventarioPage() {
                     : "text-zinc-550 hover:text-zinc-900"
                 }`}
               >
-                Recurrentes (
-                {products.filter((p) => p.isFavorite).length})
+                Recurrentes ({products.filter((p) => p.isFavorite).length})
               </button>
               <button
                 onClick={() => setFilterStatus("available")}
@@ -486,7 +520,10 @@ export default function InventarioPage() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleToggleFavorite(product.id, product.isFavorite);
+                              handleToggleFavorite(
+                                product.id,
+                                product.isFavorite,
+                              );
                             }}
                             title={
                               product.isFavorite
@@ -502,7 +539,9 @@ export default function InventarioPage() {
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
                               viewBox="0 0 24 24"
-                              fill={product.isFavorite ? "currentColor" : "none"}
+                              fill={
+                                product.isFavorite ? "currentColor" : "none"
+                              }
                               stroke="currentColor"
                               strokeWidth={1.5}
                               className="w-5 h-5"
@@ -549,7 +588,8 @@ export default function InventarioPage() {
                                 Mínimo Requerido:
                               </span>
                               <span className="ml-2 font-bold text-zinc-800">
-                                {product.minQuantity} {UNIT_LABELS[product.unit] ?? "uds"}.
+                                {product.minQuantity}{" "}
+                                {UNIT_LABELS[product.unit] ?? "uds"}.
                               </span>
                             </div>
                             <div>
@@ -557,7 +597,8 @@ export default function InventarioPage() {
                                 Capacidad Máxima:
                               </span>
                               <span className="ml-2 font-bold text-zinc-800">
-                                {product.maxQuantity} {UNIT_LABELS[product.unit] ?? "uds"}.
+                                {product.maxQuantity}{" "}
+                                {UNIT_LABELS[product.unit] ?? "uds"}.
                               </span>
                             </div>
                             <div>
@@ -611,13 +652,20 @@ export default function InventarioPage() {
                             <div className="flex items-center rounded-xl border border-zinc-200 bg-white p-1!">
                               <button
                                 onClick={() => {
-                                  const currentValue = stockInputs[product.id] ?? product.stock;
-                                  const currentNum = typeof currentValue === "string" ? parseFloat(currentValue.replace(",", ".")) : currentValue;
+                                  const currentValue =
+                                    stockInputs[product.id] ?? product.stock;
+                                  const currentNum =
+                                    typeof currentValue === "string"
+                                      ? parseFloat(
+                                          currentValue.replace(",", "."),
+                                        )
+                                      : currentValue;
                                   handleStockInputChange(
                                     product.id,
                                     Math.max(
                                       0,
-                                      Math.round((currentNum - 0.5) * 100) / 100,
+                                      Math.round((currentNum - 0.5) * 100) /
+                                        100,
                                     ),
                                   );
                                 }}
@@ -651,7 +699,7 @@ export default function InventarioPage() {
                                     // Al guardar en BD se convierte a número
                                     setStockInputs((prev) => ({
                                       ...prev,
-                                      [product.id]: val
+                                      [product.id]: val,
                                     }));
                                   }
                                 }}
@@ -660,12 +708,19 @@ export default function InventarioPage() {
 
                               <button
                                 onClick={() => {
-                                  const currentValue = stockInputs[product.id] ?? product.stock;
-                                  const currentNum = typeof currentValue === "string" ? parseFloat(currentValue.replace(",", ".")) : currentValue;
+                                  const currentValue =
+                                    stockInputs[product.id] ?? product.stock;
+                                  const currentNum =
+                                    typeof currentValue === "string"
+                                      ? parseFloat(
+                                          currentValue.replace(",", "."),
+                                        )
+                                      : currentValue;
                                   handleStockInputChange(
                                     product.id,
                                     Math.min(
-                                      Math.round((currentNum + 0.5) * 100) / 100,
+                                      Math.round((currentNum + 0.5) * 100) /
+                                        100,
                                       user?.role === "USER"
                                         ? product.maxQuantity
                                         : Infinity,
@@ -766,6 +821,42 @@ export default function InventarioPage() {
               })}
             </div>
           )}
+
+          {/* Botón Reporte de Inventario */}
+          <div className="!mt-20 !pt-6 border-t border-zinc-200 flex justify-center">
+            <button
+              onClick={handleGenerateReport}
+              disabled={isGeneratingReport}
+              className="flex items-center gap-2.5! rounded-xl bg-[#2B4236] px-6! py-3! text-sm font-bold text-white outline-none transition-all duration-200 hover:bg-[#354f41] shadow-[0_4px_12px_rgba(43,66,54,0.3)] active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-100 disabled:shadow-none cursor-pointer border-none"
+            >
+              {isGeneratingReport ? (
+                <>
+                  <svg
+                    className="h-4 w-4 animate-spin text-white"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                  Generando...
+                </>
+              ) : (
+                "Enviar Reporte Mensual"
+              )}
+            </button>
+          </div>
         </main>
       </div>
     </AuthGuard>

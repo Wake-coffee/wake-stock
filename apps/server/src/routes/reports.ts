@@ -1,6 +1,8 @@
 import { Router, Response } from 'express';
 import { prisma } from '../prisma.js';
 import { authMiddleware, requireRole, AuthenticatedRequest } from '../middleware/auth.js';
+import { generateInventoryPDF, generateOrderRequestPDF } from '../services/pdfGenerator.js';
+import { sendInventoryReport, sendOrderRequestReport } from '../services/emailService.js';
 
 const router: Router = Router();
 
@@ -67,6 +69,114 @@ router.get('/', authMiddleware, requireRole('ADMIN'), async (req: AuthenticatedR
   } catch (error) {
     console.error('❌ Error al obtener reportes:', error);
     return res.status(500).json({ error: 'Error al obtener reportes' });
+  }
+});
+
+// 3. POST /api/reports/inventory-pdf → generar y enviar reporte de inventario
+router.post('/inventory-pdf', authMiddleware, async (req: AuthenticatedRequest, res: Response): Promise<any> => {
+  try {
+    const user = req.user;
+    if (!user) {
+      return res.status(401).json({ error: 'No autenticado' });
+    }
+
+    // Obtener todos los productos
+    const products = await prisma.product.findMany({
+      select: {
+        name: true,
+        stock: true,
+        unit: true,
+      },
+      orderBy: {
+        name: 'asc',
+      },
+    });
+
+    if (products.length === 0) {
+      return res.status(400).json({ error: 'No hay productos en la BD' });
+    }
+
+    // Generar PDF
+    const pdfBuffer = await generateInventoryPDF(
+      products,
+      user.name || user.email,
+      new Date()
+    );
+
+    // Enviar por email
+    await sendInventoryReport(pdfBuffer, 'reportes@wakecoffee.es');
+
+    return res.status(200).json({
+      success: true,
+      message: 'Reporte enviado a reportes@wakecoffee.es',
+    });
+  } catch (error) {
+    console.error('❌ Error generando reporte de inventario:', error);
+    return res.status(500).json({
+      error:
+        error instanceof Error
+          ? error.message
+          : 'Error al generar el reporte',
+    });
+  }
+});
+
+// 4. POST /api/reports/order-request-pdf → generar y enviar solicitud de pedidos
+router.post('/order-request-pdf', authMiddleware, async (req: AuthenticatedRequest, res: Response): Promise<any> => {
+  try {
+    const { productIds } = req.body;
+    const user = req.user;
+
+    if (!user) {
+      return res.status(401).json({ error: 'No autenticado' });
+    }
+
+    if (!productIds || !Array.isArray(productIds) || productIds.length === 0) {
+      return res.status(400).json({ error: 'productIds es obligatorio y debe ser un array no vacío' });
+    }
+
+    // Obtener los productos seleccionados
+    const products = await prisma.product.findMany({
+      where: {
+        id: { in: productIds },
+      },
+      select: {
+        name: true,
+        stock: true,
+        minQuantity: true,
+        maxQuantity: true,
+      },
+      orderBy: {
+        name: 'asc',
+      },
+    });
+
+    if (products.length === 0) {
+      return res.status(400).json({ error: 'No se encontraron los productos solicitados' });
+    }
+
+    // Generar PDF
+    const pdfBuffer = await generateOrderRequestPDF(
+      products,
+      user.name || user.email,
+      new Date()
+    );
+
+    // Enviar por email
+    await sendOrderRequestReport(pdfBuffer, 'reportes@wakecoffee.es');
+
+    return res.status(200).json({
+      success: true,
+      message: 'Solicitud de Pedidos enviada a reportes@wakecoffee.es',
+    });
+  } catch (error) {
+    console.error('❌ Error generando solicitud de pedidos:', error);
+    return res.status(500).json({
+      error:
+        error instanceof Error
+          ? error.message
+          : 'Error al generar la solicitud de pedidos',
+    });
   }
 });
 
