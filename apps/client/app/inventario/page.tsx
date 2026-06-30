@@ -638,15 +638,17 @@ export default function InventarioPage() {
 
                               <input
                                 type="text"
-                                inputMode="decimal"
                                 placeholder="0"
                                 value={stockInputs[product.id] ?? product.stock}
                                 onChange={(e) => {
-                                  const val = e.target.value.trim();
-                                  if (val === "" || val === ".") {
+                                  const val = e.target.value;
+                                  // Permitir vacío, números, punto y coma
+                                  if (val === "") {
                                     handleStockInputChange(product.id, 0);
-                                  } else {
-                                    const num = parseFloat(val);
+                                  } else if (/^[0-9.,]*$/.test(val)) {
+                                    // Reemplazar coma por punto para parseFloat
+                                    const normalized = val.replace(",", ".");
+                                    const num = parseFloat(normalized);
                                     if (!isNaN(num) && num >= 0) {
                                       handleStockInputChange(product.id, num);
                                     }
