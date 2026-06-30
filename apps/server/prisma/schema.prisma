@@ -63,9 +63,9 @@ model Product {
   name         String        @unique
   status       ProductStatus @default(DISPONIBLE)
   unit         ProductUnit   @default(UNIDAD)
-  stock        Int           @default(0)
-  minQuantity  Int           @default(1)
-  maxQuantity  Int           @default(10)
+  stock        Float         @default(0)
+  minQuantity  Float         @default(1)
+  maxQuantity  Float         @default(10)
   durationDays Int?
   imageUrl     String?
   notes        String?
