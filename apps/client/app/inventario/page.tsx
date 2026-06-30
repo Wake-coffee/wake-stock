@@ -639,13 +639,17 @@ export default function InventarioPage() {
                               <input
                                 type="text"
                                 inputMode="decimal"
+                                placeholder="0"
                                 value={stockInputs[product.id] ?? product.stock}
                                 onChange={(e) => {
-                                  const val = e.target.value;
-                                  // Permitir: vacío, números y un punto decimal
-                                  if (val === "" || /^[0-9]*\.?[0-9]*$/.test(val)) {
+                                  const val = e.target.value.trim();
+                                  if (val === "") {
+                                    handleStockInputChange(product.id, 0);
+                                  } else {
                                     const num = parseFloat(val);
-                                    handleStockInputChange(product.id, num || 0);
+                                    if (!isNaN(num)) {
+                                      handleStockInputChange(product.id, num);
+                                    }
                                   }
                                 }}
                                 className="w-16 text-center bg-transparent border-none text-zinc-900 text-sm font-bold focus:outline-none"
