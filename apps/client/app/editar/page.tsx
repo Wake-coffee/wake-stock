@@ -346,13 +346,15 @@ function EditarForm() {
                     Existencias Iniciales
                   </label>
                   <input
-                    type="number"
-                    step="0.01"
-                    min="0"
+                    type="text"
+                    placeholder="0"
                     value={productForm.stock}
-                    onChange={(e) =>
-                      setProductForm({ ...productForm, stock: e.target.value })
-                    }
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === "" || /^[0-9.,]*$/.test(val)) {
+                        setProductForm({ ...productForm, stock: val });
+                      }
+                    }}
                     className="w-full rounded-2xl bg-white border border-zinc-200 py-3! px-4! text-sm font-medium text-zinc-900 placeholder-zinc-400 outline-none transition-all duration-200 focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm"
                   />
                 </div>
@@ -362,16 +364,18 @@ function EditarForm() {
                     Stock Mínimo
                   </label>
                   <input
-                    type="number"
-                    step="0.01"
-                    min="1"
+                    type="text"
+                    placeholder="1"
                     value={productForm.minQuantity}
-                    onChange={(e) =>
-                      setProductForm({
-                        ...productForm,
-                        minQuantity: e.target.value,
-                      })
-                    }
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === "" || /^[0-9.,]*$/.test(val)) {
+                        setProductForm({
+                          ...productForm,
+                          minQuantity: val,
+                        });
+                      }
+                    }}
                     className="w-full rounded-2xl bg-white border border-zinc-200 py-3! px-4! text-sm font-medium text-zinc-900 placeholder-zinc-400 outline-none transition-all duration-200 focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm"
                   />
                 </div>
@@ -381,16 +385,18 @@ function EditarForm() {
                     Stock Máximo
                   </label>
                   <input
-                    type="number"
-                    step="0.01"
-                    min="1"
+                    type="text"
+                    placeholder="10"
                     value={productForm.maxQuantity}
-                    onChange={(e) =>
-                      setProductForm({
-                        ...productForm,
-                        maxQuantity: e.target.value,
-                      })
-                    }
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === "" || /^[0-9.,]*$/.test(val)) {
+                        setProductForm({
+                          ...productForm,
+                          maxQuantity: val,
+                        });
+                      }
+                    }}
                     className="w-full rounded-2xl bg-white border border-zinc-200 py-3! px-4! text-sm font-medium text-zinc-900 placeholder-zinc-400 outline-none transition-all duration-200 focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm"
                   />
                 </div>
