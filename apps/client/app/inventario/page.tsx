@@ -643,11 +643,11 @@ export default function InventarioPage() {
                                 value={stockInputs[product.id] ?? product.stock}
                                 onChange={(e) => {
                                   const val = e.target.value.trim();
-                                  if (val === "") {
+                                  if (val === "" || val === ".") {
                                     handleStockInputChange(product.id, 0);
                                   } else {
                                     const num = parseFloat(val);
-                                    if (!isNaN(num)) {
+                                    if (!isNaN(num) && num >= 0) {
                                       handleStockInputChange(product.id, num);
                                     }
                                   }

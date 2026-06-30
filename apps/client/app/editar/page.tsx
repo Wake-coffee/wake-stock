@@ -347,6 +347,7 @@ function EditarForm() {
                   </label>
                   <input
                     type="number"
+                    step="0.01"
                     min="0"
                     value={productForm.stock}
                     onChange={(e) =>
@@ -362,6 +363,7 @@ function EditarForm() {
                   </label>
                   <input
                     type="number"
+                    step="0.01"
                     min="1"
                     value={productForm.minQuantity}
                     onChange={(e) =>
@@ -380,6 +382,7 @@ function EditarForm() {
                   </label>
                   <input
                     type="number"
+                    step="0.01"
                     min="1"
                     value={productForm.maxQuantity}
                     onChange={(e) =>
