@@ -49,10 +49,12 @@ export default function ChecklistPage() {
         const data = await response.json();
         setProducts(data);
 
-        // Pre-seleccionar de forma automática productos AGOTADOS o en BAJO_STOCK
+        // Pre-seleccionar de forma automática productos AGOTADOS o en BAJO_STOCK que no estén reportados
         const alertProductIds = data
           .filter(
-            (p: Product) => p.status === "AGOTADO" || p.status === "BAJO_STOCK",
+            (p: Product) =>
+              (p.status === "AGOTADO" || p.status === "BAJO_STOCK") &&
+              !p.reportedAt,
           )
           .map((p: Product) => p.id);
         setSelectedIds(alertProductIds);
