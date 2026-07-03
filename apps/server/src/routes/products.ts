@@ -209,12 +209,18 @@ router.put('/:id', authMiddleware, requireRole('ADMIN'), async (req: Authenticat
       }
     }
 
-    const parsedStock = typeof stock === 'number' ? stock : parseInt(stock) || 0;
-    const parsedMin = typeof minQuantity === 'number' ? minQuantity : parseInt(minQuantity) || 1;
-    const parsedMax = typeof maxQuantity === 'number' ? maxQuantity : parseInt(maxQuantity) || 10;
+    const parsedStock = stock !== undefined && stock !== null
+      ? (typeof stock === 'number' ? stock : parseInt(stock))
+      : productExists.stock;
+    const parsedMin = minQuantity !== undefined && minQuantity !== null
+      ? (typeof minQuantity === 'number' ? minQuantity : parseInt(minQuantity))
+      : productExists.minQuantity;
+    const parsedMax = maxQuantity !== undefined && maxQuantity !== null
+      ? (typeof maxQuantity === 'number' ? maxQuantity : parseInt(maxQuantity))
+      : productExists.maxQuantity;
     const parsedDuration = durationDays !== undefined && durationDays !== null
       ? (typeof durationDays === 'number' ? durationDays : parseInt(durationDays) || null)
-      : null;
+      : productExists.durationDays;
 
     const status = determineStatus(parsedStock, parsedMin);
 
@@ -373,6 +379,50 @@ router.patch('/:id/favorite', authMiddleware, requireRole('ADMIN'), async (req: 
   } catch (error) {
     console.error('❌ Error al actualizar favorito de producto:', error);
     return res.status(500).json({ error: 'Error al actualizar favorito de producto' });
+  }
+});
+
+// 8. POST /api/admin/recalculate-status → recalcular status de todos los productos (solo ADMIN)
+router.post('/admin/recalculate-status', authMiddleware, requireRole('ADMIN'), async (req: AuthenticatedRequest, res: Response): Promise<any> => {
+  try {
+    // Obtener todos los productos
+    const products = await prisma.product.findMany({
+      select: {
+        id: true,
+        stock: true,
+        minQuantity: true,
+      },
+    });
+
+    if (products.length === 0) {
+      return res.json({
+        success: true,
+        message: 'No hay productos para recalcular',
+        updated: 0,
+      });
+    }
+
+    // Actualizar cada producto con su status recalculado
+    const updatePromises = products.map((product) => {
+      const newStatus = determineStatus(product.stock, product.minQuantity);
+      return prisma.product.update({
+        where: { id: product.id },
+        data: { status: newStatus },
+      });
+    });
+
+    await Promise.all(updatePromises);
+
+    return res.json({
+      success: true,
+      message: `Status recalculado para ${products.length} productos`,
+      updated: products.length,
+    });
+  } catch (error) {
+    console.error('❌ Error al recalcular status:', error);
+    return res.status(500).json({
+      error: 'Error al recalcular status de productos',
+    });
   }
 });
 
