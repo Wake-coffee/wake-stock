@@ -6,6 +6,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { api } from "../../utils/api";
 import AuthGuard from "../../components/AuthGuard";
 import Header from "../../components/Header";
+import NotesModal from "../../components/NotesModal";
 
 interface Product {
   id: string;
@@ -37,6 +38,7 @@ export default function ChecklistPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [showNotesModal, setShowNotesModal] = useState(false);
 
   // Obtener la lista de productos al cargar la página
   useEffect(() => {
@@ -92,12 +94,15 @@ export default function ChecklistPage() {
     setSelectedIds([]);
   };
 
-  const handleSubmitReport = async () => {
+  const handleSubmitReport = () => {
     if (selectedIds.length === 0) {
       setError("Por favor, selecciona al menos un producto para reportar.");
       return;
     }
+    setShowNotesModal(true);
+  };
 
+  const handleConfirmNotes = async (notes: string) => {
     setIsSubmitting(true);
     setError(null);
     setSuccess(null);
@@ -117,9 +122,10 @@ export default function ChecklistPage() {
       }));
 
     try {
-      // 1. Guardar reporte de checklist
+      // 1. Guardar reporte de checklist con notas
       const checklistResponse = await api.post("/api/reports", {
         items: selectedProducts,
+        notes: notes || null,
       });
       if (!checklistResponse.ok) {
         const errData = await checklistResponse.json().catch(() => ({}));
@@ -146,6 +152,7 @@ export default function ChecklistPage() {
         setSuccess("Reporte guardado, pero hubo un error al generar el PDF");
       }
 
+      setShowNotesModal(false);
       setSelectedIds([]);
 
       setTimeout(() => {
@@ -197,16 +204,16 @@ export default function ChecklistPage() {
           <div className="flex flex-col gap-4 mb-8 pb-4 border-b border-zinc-105">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               {/* Contenedor de botones */}
-              <div className="flex gap-3 mb-2.5! mt-3! shrink-0">
+              <div className="flex gap-3 mb-2.5 mt-3 shrink-0">
                 <button
                   onClick={handleSelectAllAlerts}
-                  className="px-5! py-4! rounded-xl border border-zinc-200 bg-white text-xs font-bold text-zinc-700 hover:bg-zinc-50 hover:text-[#2B4236] transition-all duration-200 cursor-pointer shadow-sm active:scale-95"
+                  className="px-5 py-4 rounded-xl border border-zinc-200 bg-white text-xs font-bold text-zinc-700 hover:bg-zinc-50 hover:text-[#2B4236] transition-all duration-200 cursor-pointer shadow-sm active:scale-95"
                 >
                   Auto-seleccionar Alertas
                 </button>
                 <button
                   onClick={handleClearSelection}
-                  className="px-3! py-3.5 rounded-xl border border-zinc-200 bg-white text-xs font-bold text-zinc-700 hover:bg-zinc-50 hover:text-red-600 transition-all duration-200 cursor-pointer shadow-sm active:scale-95"
+                  className="px-3 py-3.5 rounded-xl border border-zinc-200 bg-white text-xs font-bold text-zinc-700 hover:bg-zinc-50 hover:text-red-600 transition-all duration-200 cursor-pointer shadow-sm active:scale-95"
                 >
                   Limpiar Todo
                 </button>
@@ -256,24 +263,24 @@ export default function ChecklistPage() {
           )}
 
           {/* Filtros y Búsqueda */}
-          <div className="flex flex-col md:flex-row gap-4 mb-8! mt-3!">
+          <div className="flex flex-col md:flex-row gap-4 mb-8 mt-3">
             {/* Buscador */}
-            <div className="relative p-2! flex-1">
+            <div className="relative p-2 flex-1">
               <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-zinc-400"></div>
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Buscar producto..."
-                className="w-full rounded-2xl border border-zinc-200 bg-white py-3! pl-6! pr-4 text-sm font-medium text-zinc-900 placeholder-zinc-400 outline-none transition-all duration-200 focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm"
+                className="w-full rounded-2xl border border-zinc-200 bg-white py-3 pl-6 pr-4 text-sm font-medium text-zinc-900 placeholder-zinc-400 outline-none transition-all duration-200 focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm"
               />
             </div>
 
             {/* Pestañas de Filtro Rediseñadas al estilo Wake Stock */}
-            <div className="flex rounded-2xl border border-zinc-200 bg-zinc-50 p-2! self-start md:self-auto shadow-inner">
+            <div className="flex rounded-2xl border border-zinc-200 bg-zinc-50 p-2 self-start md:self-auto shadow-inner">
               <button
                 onClick={() => setFilterStatus("all")}
-                className={`px-5! py-2! text-xs font-bold rounded-xl transition-all duration-200 cursor-pointer ${
+                className={`px-5 py-2 text-xs font-bold rounded-xl transition-all duration-200 cursor-pointer ${
                   filterStatus === "all"
                     ? "bg-[#2B4236] text-white shadow-md"
                     : "text-zinc-500 hover:text-zinc-950"
@@ -283,7 +290,7 @@ export default function ChecklistPage() {
               </button>
               <button
                 onClick={() => setFilterStatus("alert")}
-                className={`px-5! py-2! text-xs font-bold rounded-xl transition-all duration-200 cursor-pointer ${
+                className={`px-5 py-2 text-xs font-bold rounded-xl transition-all duration-200 cursor-pointer ${
                   filterStatus === "alert"
                     ? "bg-[#2B4236] text-white shadow-md"
                     : "text-zinc-500 hover:text-zinc-950"
@@ -299,7 +306,7 @@ export default function ChecklistPage() {
               </button>
               <button
                 onClick={() => setFilterStatus("favorite")}
-                className={`px-5! py-2! text-xs font-bold rounded-xl transition-all duration-200 cursor-pointer ${
+                className={`px-5 py-2 text-xs font-bold rounded-xl transition-all duration-200 cursor-pointer ${
                   filterStatus === "favorite"
                     ? "bg-[#2B4236] text-white shadow-md"
                     : "text-zinc-500 hover:text-zinc-950"
@@ -309,7 +316,7 @@ export default function ChecklistPage() {
               </button>
               <button
                 onClick={() => setFilterStatus("available")}
-                className={`px-5! py-2! text-xs font-bold rounded-xl transition-all duration-200 cursor-pointer ${
+                className={`px-5 py-2 text-xs font-bold rounded-xl transition-all duration-200 cursor-pointer ${
                   filterStatus === "available"
                     ? "bg-[#2B4236] text-white shadow-md"
                     : "text-zinc-500 hover:text-zinc-950"
@@ -353,7 +360,7 @@ export default function ChecklistPage() {
             </div>
           ) : (
             /* Cuadrícula de Tarjetas con gap-2 estricto alineado con la Home */
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pb-32!">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pb-32">
               {filteredProducts.map((product) => {
                 const isSelected = selectedIds.includes(product.id);
                 const isLocked = !!product.reportedAt && !isAdmin;
@@ -363,15 +370,15 @@ export default function ChecklistPage() {
                 let statusLabel = "";
                 if (product.status === "AGOTADO") {
                   badgeColor =
-                    "bg-red-50 text-red-700 p-1.5! mr-2! border-red-100";
+                    "bg-red-50 text-red-700 p-1.5 mr-2 border-red-100";
                   statusLabel = "Agotado";
                 } else if (product.status === "BAJO_STOCK") {
                   badgeColor =
-                    "bg-amber-50 text-amber-700 p-1.5! mr-2! border-amber-100";
+                    "bg-amber-50 text-amber-700 p-1.5 mr-2 border-amber-100";
                   statusLabel = "Bajo Stock";
                 } else {
                   badgeColor =
-                    "bg-emerald-50 text-emerald-700 p-1.5! mr-2! border-emerald-100";
+                    "bg-emerald-50 text-emerald-700 p-1.5 mr-2 border-emerald-100";
                   statusLabel = "Disponible";
                 }
 
@@ -384,7 +391,7 @@ export default function ChecklistPage() {
                         ? "Ya fue reportado por cocina o barra. Se desbloquea al actualizar el stock."
                         : undefined
                     }
-                    className={`group p-3! relative flex items-center justify-between rounded-2xl border transition-all duration-200 box-border ${
+                    className={`group p-3 relative flex items-center justify-between rounded-2xl border transition-all duration-200 box-border ${
                       isLocked
                         ? "border-zinc-200 bg-zinc-50 opacity-60 cursor-not-allowed"
                         : "cursor-pointer"
@@ -399,7 +406,7 @@ export default function ChecklistPage() {
                     <div className="flex items-center gap-4 flex-1 min-w-0">
                       {/* Checkbox circular/redondeado premium */}
                       <div
-                        className={`flex ml-2.5! h-5.5 w-5.5 shrink-0 items-center justify-center rounded-lg border transition-all duration-200 ${
+                        className={`flex ml-2.5 h-5.5 w-5.5 shrink-0 items-center justify-center rounded-lg border transition-all duration-200 ${
                           isSelected
                             ? "border-[#2B4236] bg-[#2B4236] text-white"
                             : "border-zinc-300 bg-white group-hover:border-[#2B4236]/50"
@@ -464,14 +471,14 @@ export default function ChecklistPage() {
 
           {/* Panel Flotante de Confirmación (Estilo Barra Premium Redondeada) */}
           {!isLoading && products.length > 0 && (
-            <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[92vw] max-w-340 bg-white/90 backdrop-blur-md py-4! px-6! z-30 rounded-3xl shadow-[0_15px_35px_rgba(0,0,0,0.15)] border border-zinc-100 flex items-center justify-between gap-4! animate-in slide-in-from-bottom duration-300">
+            <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[92vw] max-w-340 bg-white/90 backdrop-blur-md py-4 px-6 z-30 rounded-3xl shadow-[0_15px_35px_rgba(0,0,0,0.15)] border border-zinc-100 flex items-center justify-between gap-4 animate-in slide-in-from-bottom duration-300">
               <div className="text-sm">
                 <p className="text-[#2B4236] font-black text-base">
                   {selectedIds.length === 1
                     ? "1 producto seleccionado"
                     : `${selectedIds.length} productos seleccionados`}
                 </p>
-                <p className="text-xs font-medium text-zinc-400 hidden sm:block mt-0.5!">
+                <p className="text-xs font-medium text-zinc-400 hidden sm:block mt-0.5">
                   Se enviará una instantánea del estado de stock de los
                   elementos seleccionados al historial.
                 </p>
@@ -480,7 +487,7 @@ export default function ChecklistPage() {
               <button
                 onClick={handleSubmitReport}
                 disabled={isSubmitting || selectedIds.length === 0}
-                className="flex items-center gap-2.5! rounded-xl bg-[#2B4236] px-6! py-3! text-sm font-bold text-white outline-none transition-all duration-200 hover:bg-[#354f41] shadow-[0_4px_12px_rgba(43,66,54,0.3)] active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-100 disabled:shadow-none cursor-pointer border-none"
+                className="flex items-center gap-2.5 rounded-xl bg-[#2B4236] px-6 py-3 text-sm font-bold text-white outline-none transition-all duration-200 hover:bg-[#354f41] shadow-[0_4px_12px_rgba(43,66,54,0.3)] active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-100 disabled:shadow-none cursor-pointer border-none"
               >
                 {isSubmitting ? (
                   <>
@@ -527,6 +534,15 @@ export default function ChecklistPage() {
               </button>
             </div>
           )}
+
+          {/* Modal de Notas */}
+          <NotesModal
+            isOpen={showNotesModal}
+            selectedCount={selectedIds.length}
+            onConfirm={handleConfirmNotes}
+            onCancel={() => setShowNotesModal(false)}
+            isLoading={isSubmitting}
+          />
         </main>
       </div>
     </AuthGuard>

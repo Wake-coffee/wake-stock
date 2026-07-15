@@ -87,6 +87,7 @@ model ChecklistReport {
   id          String   @id @default(uuid())
   submittedBy String
   items       Json     // Instantánea del reporte en formato JSON
+  notes       String?  // Notas generales del reporte
   createdAt   DateTime @default(now())
 
   @@map("checklist_reports")

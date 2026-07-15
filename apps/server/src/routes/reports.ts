@@ -9,7 +9,7 @@ const router: Router = Router();
 // 1. POST /api/reports → guardar reporte de checklist (ADMIN y USER pueden enviar)
 router.post('/', authMiddleware, async (req: AuthenticatedRequest, res: Response): Promise<any> => {
   try {
-    const { items } = req.body;
+    const { items, notes } = req.body;
 
     if (!items || !Array.isArray(items)) {
       return res.status(400).json({ error: 'El campo items es obligatorio y debe ser un arreglo' });
@@ -41,6 +41,7 @@ router.post('/', authMiddleware, async (req: AuthenticatedRequest, res: Response
       data: {
         submittedBy,
         items, // Prisma maneja automáticamente el mapeo a JSON
+        notes: notes || null, // Agregar notas si se proporcionan
       },
     });
 

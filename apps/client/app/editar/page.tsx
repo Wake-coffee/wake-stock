@@ -3,7 +3,6 @@
 import React, { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "../../contexts/AuthContext";
-import AuthGuard from "../../components/AuthGuard";
 import Header from "../../components/Header";
 import { api } from "../../utils/api";
 
@@ -30,7 +29,6 @@ function EditarForm() {
     minQuantity: "1",
     maxQuantity: "10",
     durationDays: "" as string | number,
-    imageUrl: "",
     supplierId: "",
     unit: "UNIDAD",
     notes: "",
@@ -51,12 +49,17 @@ function EditarForm() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Redirigir si no es admin
+  // Redirigir si no es admin y intenta crear un nuevo producto (sin ID)
   useEffect(() => {
-    if (!isLoading && !isAdmin) {
+    if (!isLoading && !isAdmin && type === "supplier") {
+      // No usuarios normales no pueden crear proveedores
       router.replace("/");
     }
-  }, [isAdmin, isLoading, router]);
+    if (!isLoading && !isAdmin && type === "product" && !id) {
+      // Usuarios normales no pueden crear productos, solo editar
+      router.replace("/inventario");
+    }
+  }, [isAdmin, isLoading, router, type, id]);
 
   useEffect(() => {
     async function loadInitialData() {
@@ -99,7 +102,6 @@ function EditarForm() {
                 data.durationDays !== null && data.durationDays !== undefined
                   ? data.durationDays
                   : "",
-              imageUrl: data.imageUrl || "",
               supplierId: data.supplierId || "",
               unit: data.unit || "UNIDAD",
               notes: data.notes || "",
@@ -158,7 +160,6 @@ function EditarForm() {
             productForm.durationDays !== ""
               ? Number(productForm.durationDays)
               : null,
-          imageUrl: productForm.imageUrl || null,
           supplierId: productForm.supplierId || null,
           unit: productForm.unit,
           notes: productForm.notes || null,
@@ -210,7 +211,7 @@ function EditarForm() {
         <div className="w-full">
           <Header />
         </div>
-        <div className="flex-1 flex flex-col items-center justify-center py-24! text-zinc-500 gap-3 box-border">
+        <div className="flex-1 flex flex-col items-center justify-center py-24 text-zinc-500 gap-3 box-border">
           <div className="h-9 w-9 animate-spin rounded-full border-4 border-zinc-100 border-t-[#2B4236]" />
           <p className="text-sm font-medium">Cargando formulario...</p>
         </div>
@@ -218,38 +219,9 @@ function EditarForm() {
     );
   }
 
-  if (!isAdmin) {
-    return (
-      <div className="min-h-screen bg-white text-zinc-900 flex flex-col font-sans w-full items-center overflow-x-hidden">
-        <div className="w-full">
-          <Header />
-        </div>
-        <div className="flex-1 flex flex-col items-center justify-center p-6! text-center box-border">
-          <div className="w-16 h-16 bg-red-50 border border-red-200 text-red-600 rounded-full flex items-center justify-center mb-4!">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="w-8 h-8"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"
-              />
-            </svg>
-          </div>
-          <h2 className="text-xl font-bold text-zinc-800">Acceso Denegado</h2>
-          <p className="text-sm font-medium text-zinc-500 max-w-md mt-1!">
-            Esta sección es exclusiva para usuarios administradores. Serás
-            redirigido al panel principal.
-          </p>
-        </div>
-      </div>
-    );
-  }
+  // Permitir acceso pero con permisos limitados para usuarios no-admin
+  const isLimitedUser = type === "product" && !isAdmin;
+  const canEdit = isAdmin || type === "product"; // admin puede todo, users solo productos
 
   const formTitle = `${isEditMode ? "Editar" : "Nuevo"} ${type === "product" ? "Producto" : "Proveedor"}`;
 
@@ -260,12 +232,12 @@ function EditarForm() {
       </div>
 
       {/* main estructurado a max-w-[94vw] adaptado a tu Home */}
-      <main className="flex-1 w-full max-w-[94vw] xl:max-w-240 flex flex-col py-8! mb-24! box-border">
+      <main className="flex-1 w-full max-w-[94vw] xl:max-w-240 flex flex-col py-8 mb-24 box-border">
         {/* Cabecera */}
-        <div className="flex flex-col gap-2 mb-8! pb-4! border-b border-zinc-105">
+        <div className="flex flex-col gap-2 mb-8 pb-4 border-b border-zinc-105">
           <button
             onClick={handleCancel}
-            className="flex items-center gap-1.5 text-xs font-bold text-zinc-400 hover:text-zinc-800 transition-colors mb-3! group self-start"
+            className="flex items-center gap-1.5 text-xs font-bold text-zinc-400 hover:text-zinc-800 transition-colors mb-3 group self-start"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -297,7 +269,7 @@ function EditarForm() {
 
         {/* Notificaciones de Error */}
         {error && (
-          <div className="mb-6! flex items-center gap-2.5 rounded-2xl bg-red-50 border border-red-200 p-4! text-sm font-semibold text-red-700 shadow-sm animate-in fade-in duration-200">
+          <div className="mb-6 flex items-center gap-2.5 rounded-2xl bg-red-50 border border-red-200 p-4 text-sm font-semibold text-red-700 shadow-sm animate-in fade-in duration-200">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -316,37 +288,67 @@ function EditarForm() {
           </div>
         )}
 
+        {/* Aviso para usuarios limitados */}
+        {isLimitedUser && (
+          <div className="mb-6 flex items-start gap-3 rounded-2xl bg-green-100 border border-green-600 p-4 text-sm text-green-950 shadow-sm">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className="w-5 h-5 shrink-0 mt-0.5 text-green-950"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"
+              />
+            </svg>
+            <div>
+              <p className="font-bold">Edición limitada</p>
+              <p className="text-xs text-green-950 mt-0.5">
+                Solo puedes modificar los campos de{" "}
+                <strong>Stock Mínimo</strong> y <strong>Stock Máximo</strong>.
+                Los otros campos están deshabilitados.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Tarjeta de Formulario Base */}
         <form
           onSubmit={handleSubmit}
-          className="bg-white border border-zinc-200 rounded-[28px] p-6! sm:p-8! space-y-6! shadow-[0_4px_20px_rgba(0,0,0,0.02)] box-border"
+          className="bg-white border border-zinc-200 rounded-[28px] p-6 sm:p-8 space-y-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)] box-border"
         >
           {type === "product" ? (
             // FORMULARIO DE PRODUCTO REESTILIZADO
-            <div className="space-y-5!">
+            <div className="space-y-5">
               <div>
-                <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2! pl-1!">
+                <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2 pl-1">
                   Nombre del Producto *
                 </label>
                 <input
                   type="text"
                   required
+                  disabled={isLimitedUser}
                   placeholder="Ej. Café en grano Arabica"
                   value={productForm.name}
                   onChange={(e) =>
                     setProductForm({ ...productForm, name: e.target.value })
                   }
-                  className="w-full rounded-2xl bg-white border border-zinc-200 py-3! px-4! text-sm font-medium text-zinc-900 placeholder-zinc-400 outline-none transition-all duration-200 focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm"
+                  className="w-full rounded-2xl bg-white border border-zinc-200 py-3 px-4 text-sm font-medium text-zinc-900 placeholder-zinc-400 outline-none transition-all duration-200 focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm disabled:bg-zinc-50 disabled:text-zinc-400 disabled:cursor-not-allowed"
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4!">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2! pl-1!">
+                  <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2 pl-1">
                     Existencias Iniciales
                   </label>
                   <input
                     type="text"
+                    disabled={isLimitedUser}
                     placeholder="0"
                     value={productForm.stock}
                     onChange={(e) => {
@@ -355,12 +357,12 @@ function EditarForm() {
                         setProductForm({ ...productForm, stock: val });
                       }
                     }}
-                    className="w-full rounded-2xl bg-white border border-zinc-200 py-3! px-4! text-sm font-medium text-zinc-900 placeholder-zinc-400 outline-none transition-all duration-200 focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm"
+                    className="w-full rounded-2xl bg-white border border-zinc-200 py-3 px-4 text-sm font-medium text-zinc-900 placeholder-zinc-400 outline-none transition-all duration-200 focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm disabled:bg-zinc-50 disabled:text-zinc-400 disabled:cursor-not-allowed"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2! pl-1!">
+                  <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2 pl-1">
                     Stock Mínimo
                   </label>
                   <input
@@ -376,12 +378,12 @@ function EditarForm() {
                         });
                       }
                     }}
-                    className="w-full rounded-2xl bg-white border border-zinc-200 py-3! px-4! text-sm font-medium text-zinc-900 placeholder-zinc-400 outline-none transition-all duration-200 focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm"
+                    className="w-full rounded-2xl bg-white border border-zinc-200 py-3 px-4 text-sm font-medium text-zinc-900 placeholder-zinc-400 outline-none transition-all duration-200 focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2! pl-1!">
+                  <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2 pl-1">
                     Stock Máximo
                   </label>
                   <input
@@ -397,19 +399,20 @@ function EditarForm() {
                         });
                       }
                     }}
-                    className="w-full rounded-2xl bg-white border border-zinc-200 py-3! px-4! text-sm font-medium text-zinc-900 placeholder-zinc-400 outline-none transition-all duration-200 focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm"
+                    className="w-full rounded-2xl bg-white border border-zinc-200 py-3 px-4 text-sm font-medium text-zinc-900 placeholder-zinc-400 outline-none transition-all duration-200 focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4!">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2! pl-1!">
+                  <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2 pl-1">
                     Días de Duración (Consumo)
                   </label>
                   <input
                     type="number"
                     min="1"
+                    disabled={isLimitedUser}
                     placeholder="Sin límite"
                     value={productForm.durationDays}
                     onChange={(e) =>
@@ -421,20 +424,21 @@ function EditarForm() {
                             : "",
                       })
                     }
-                    className="w-full rounded-2xl bg-white border border-zinc-200 py-3! px-4! text-sm font-medium text-zinc-900 placeholder-zinc-400 outline-none transition-all duration-200 focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm"
+                    className="w-full rounded-2xl bg-white border border-zinc-200 py-3 px-4 text-sm font-medium text-zinc-900 placeholder-zinc-400 outline-none transition-all duration-200 focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm disabled:bg-zinc-50 disabled:text-zinc-400 disabled:cursor-not-allowed"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2! pl-1!">
+                  <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2 pl-1">
                     Unidad de Medida
                   </label>
                   <select
+                    disabled={isLimitedUser}
                     value={productForm.unit}
                     onChange={(e) =>
                       setProductForm({ ...productForm, unit: e.target.value })
                     }
-                    className="w-full rounded-2xl bg-white border border-zinc-200 py-3! px-4! text-sm font-bold text-zinc-800 outline-none transition-all duration-200 focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm cursor-pointer"
+                    className="w-full rounded-2xl bg-white border border-zinc-200 py-3 px-4 text-sm font-bold text-zinc-800 outline-none transition-all duration-200 focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm cursor-pointer disabled:bg-zinc-50 disabled:text-zinc-400 disabled:cursor-not-allowed"
                   >
                     <option value="UNIDAD">Unidad</option>
                     <option value="KG">Kg</option>
@@ -446,10 +450,11 @@ function EditarForm() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2! pl-1!">
+                  <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2 pl-1">
                     Proveedor Suministrador
                   </label>
                   <select
+                    disabled={isLimitedUser}
                     value={productForm.supplierId}
                     onChange={(e) =>
                       setProductForm({
@@ -457,7 +462,7 @@ function EditarForm() {
                         supplierId: e.target.value,
                       })
                     }
-                    className="w-full rounded-2xl bg-white border border-zinc-200 py-3! px-4! text-sm font-bold text-zinc-800 outline-none transition-all duration-200 focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm cursor-pointer"
+                    className="w-full rounded-2xl bg-white border border-zinc-200 py-3 px-4 text-sm font-bold text-zinc-800 outline-none transition-all duration-200 focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm cursor-pointer disabled:bg-zinc-50 disabled:text-zinc-400 disabled:cursor-not-allowed"
                   >
                     <option value="">Ninguno / Sin Proveedor</option>
                     {suppliersList.map((sup) => (
@@ -470,15 +475,16 @@ function EditarForm() {
               </div>
 
               <div>
-                <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2! pl-1!">
+                <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2 pl-1">
                   Área de Visibilidad
                 </label>
                 <select
+                  disabled={isLimitedUser}
                   value={productForm.area}
                   onChange={(e) =>
                     setProductForm({ ...productForm, area: e.target.value })
                   }
-                  className="w-full rounded-2xl bg-white border border-zinc-200 py-3! px-4! text-sm font-bold text-zinc-800 outline-none transition-all duration-200 focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm cursor-pointer"
+                  className="w-full rounded-2xl bg-white border border-zinc-200 py-3 px-4 text-sm font-bold text-zinc-800 outline-none transition-all duration-200 focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm cursor-pointer disabled:bg-zinc-50 disabled:text-zinc-400 disabled:cursor-not-allowed"
                 >
                   <option value="">Ambos (Cocina y Barra)</option>
                   <option value="COCINA">Solo Cocina</option>
@@ -487,40 +493,26 @@ function EditarForm() {
               </div>
 
               <div>
-                <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2! pl-1!">
-                  URL de la Imagen del Producto
-                </label>
-                <input
-                  type="url"
-                  placeholder="https://images.unsplash.com/photo-..."
-                  value={productForm.imageUrl}
-                  onChange={(e) =>
-                    setProductForm({ ...productForm, imageUrl: e.target.value })
-                  }
-                  className="w-full rounded-2xl bg-white border border-zinc-200 py-3! px-4! text-sm font-medium text-zinc-900 placeholder-zinc-400 outline-none transition-all duration-200 focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2! pl-1!">
+                <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2 pl-1">
                   Notas del Producto
                 </label>
                 <textarea
                   rows={3}
+                  disabled={isLimitedUser}
                   placeholder="Instrucciones de almacenamiento, observaciones..."
                   value={productForm.notes}
                   onChange={(e) =>
                     setProductForm({ ...productForm, notes: e.target.value })
                   }
-                  className="w-full rounded-2xl bg-white border border-zinc-200 py-3! px-4! text-sm font-medium text-zinc-900 placeholder-zinc-400 outline-none transition-all duration-200 focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm resize-y"
+                  className="w-full rounded-2xl bg-white border border-zinc-200 py-3 px-4 text-sm font-medium text-zinc-900 placeholder-zinc-400 outline-none transition-all duration-200 focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm resize-y disabled:bg-zinc-50 disabled:text-zinc-400 disabled:cursor-not-allowed"
                 />
               </div>
             </div>
           ) : (
             // FORMULARIO DE PROVEEDOR REESTILIZADO
-            <div className="space-y-5!">
+            <div className="space-y-5">
               <div>
-                <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2! pl-1!">
+                <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2 pl-1">
                   Nombre del Proveedor *
                 </label>
                 <input
@@ -531,13 +523,13 @@ function EditarForm() {
                   onChange={(e) =>
                     setSupplierForm({ ...supplierForm, name: e.target.value })
                   }
-                  className="w-full rounded-2xl bg-white border border-zinc-200 py-3! px-4! text-sm font-medium text-zinc-900 placeholder-zinc-400 outline-none transition-all duration-200 focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm"
+                  className="w-full rounded-2xl bg-white border border-zinc-200 py-3 px-4 text-sm font-medium text-zinc-900 placeholder-zinc-400 outline-none transition-all duration-200 focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm"
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4!">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2! pl-1!">
+                  <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2 pl-1">
                     Teléfono de Contacto
                   </label>
                   <input
@@ -550,12 +542,12 @@ function EditarForm() {
                         phone: e.target.value,
                       })
                     }
-                    className="w-full rounded-2xl bg-white border border-zinc-200 py-3! px-4! text-sm font-medium text-zinc-900 placeholder-zinc-400 outline-none transition-all duration-200 focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm"
+                    className="w-full rounded-2xl bg-white border border-zinc-200 py-3 px-4 text-sm font-medium text-zinc-900 placeholder-zinc-400 outline-none transition-all duration-200 focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2! pl-1!">
+                  <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2 pl-1">
                     Correo Electrónico
                   </label>
                   <input
@@ -568,13 +560,13 @@ function EditarForm() {
                         email: e.target.value,
                       })
                     }
-                    className="w-full rounded-2xl bg-white border border-zinc-200 py-3! px-4! text-sm font-medium text-zinc-900 placeholder-zinc-400 outline-none transition-all duration-200 focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm"
+                    className="w-full rounded-2xl bg-white border border-zinc-200 py-3 px-4 text-sm font-medium text-zinc-900 placeholder-zinc-400 outline-none transition-all duration-200 focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2! pl-1!">
+                <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2 pl-1">
                   Sitio Web
                 </label>
                 <input
@@ -587,12 +579,12 @@ function EditarForm() {
                       website: e.target.value,
                     })
                   }
-                  className="w-full rounded-2xl bg-white border border-zinc-200 py-3! px-4! text-sm font-medium text-zinc-900 placeholder-zinc-400 outline-none transition-all duration-200 focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm"
+                  className="w-full rounded-2xl bg-white border border-zinc-200 py-3 px-4 text-sm font-medium text-zinc-900 placeholder-zinc-400 outline-none transition-all duration-200 focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2! pl-1!">
+                <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2 pl-1">
                   Notas de Entrega / Información de Reparto
                 </label>
                 <textarea
@@ -602,25 +594,25 @@ function EditarForm() {
                   onChange={(e) =>
                     setSupplierForm({ ...supplierForm, notes: e.target.value })
                   }
-                  className="w-full rounded-2xl bg-white border border-zinc-200 py-3! px-4! text-sm font-medium text-zinc-900 placeholder-zinc-400 outline-none transition-all duration-200 focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm resize-y"
+                  className="w-full rounded-2xl bg-white border border-zinc-200 py-3 px-4 text-sm font-medium text-zinc-900 placeholder-zinc-400 outline-none transition-all duration-200 focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm resize-y"
                 />
               </div>
             </div>
           )}
 
           {/* Botones de Acción Estilo Premium */}
-          <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-5! border-t border-zinc-200 box-border">
+          <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-5 border-t border-zinc-200 box-border">
             <button
               type="button"
               onClick={handleCancel}
-              className="w-full sm:w-auto rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 px-6! py-3.5! text-sm font-bold text-zinc-700 hover:text-[#2B4236] transition-all duration-200 cursor-pointer shadow-sm active:scale-95"
+              className="w-full sm:w-auto rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 px-6 py-3.5 text-sm font-bold text-zinc-700 hover:text-[#2B4236] transition-all duration-200 cursor-pointer shadow-sm active:scale-95"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={isSaving}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl bg-[#2B4236] hover:bg-[#354f41] px-8! py-3.5! text-sm font-bold text-white outline-none transition-all duration-200 shadow-[0_4px_12px_rgba(43,66,54,0.3)] active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-100 disabled:shadow-none cursor-pointer border-none"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl bg-[#2B4236] hover:bg-[#354f41] px-8 py-3.5 text-sm font-bold text-white outline-none transition-all duration-200 shadow-[0_4px_12px_rgba(43,66,54,0.3)] active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-100 disabled:shadow-none cursor-pointer border-none"
             >
               {isSaving && (
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
