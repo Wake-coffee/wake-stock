@@ -137,6 +137,7 @@ export default function ChecklistPage() {
       try {
         const pdfResponse = await api.post("/api/reports/order-request-pdf", {
           productIds: selectedIds,
+          notes: notes || null,
         });
         if (pdfResponse.ok) {
           pdfSuccess = true;

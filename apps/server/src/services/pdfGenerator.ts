@@ -108,7 +108,8 @@ interface OrderRequestProductData {
 export async function generateOrderRequestPDF(
   products: OrderRequestProductData[],
   userName: string,
-  date: Date
+  date: Date,
+  reportNotes?: string | null
 ): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({
@@ -237,6 +238,38 @@ export async function generateOrderRequestPDF(
       .text(`Total productos: ${products.length}`, 50, currentY, {
         align: "center",
       });
+
+    // Agregar notas del reporte al final si existen
+    if (reportNotes && reportNotes.trim()) {
+      currentY += 30;
+
+      // Línea separadora
+      doc
+        .strokeColor("#cccccc")
+        .lineWidth(0.5)
+        .moveTo(50, currentY)
+        .lineTo(550, currentY)
+        .stroke();
+
+      currentY += 15;
+
+      // Título de notas
+      doc
+        .font("Helvetica-Bold")
+        .fontSize(11)
+        .text("Nota de Reporte:", 50, currentY);
+
+      currentY += 20;
+
+      // Contenido de notas
+      doc
+        .font("Helvetica")
+        .fontSize(10)
+        .text(reportNotes, 50, currentY, {
+          width: 500,
+          align: "left",
+        });
+    }
 
     doc.end();
   });

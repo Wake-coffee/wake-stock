@@ -125,7 +125,7 @@ router.post('/inventory-pdf', authMiddleware, async (req: AuthenticatedRequest, 
 // 4. POST /api/reports/order-request-pdf → generar y enviar solicitud de pedidos
 router.post('/order-request-pdf', authMiddleware, async (req: AuthenticatedRequest, res: Response): Promise<any> => {
   try {
-    const { productIds } = req.body;
+    const { productIds, notes } = req.body;
     const user = req.user;
 
     if (!user) {
@@ -169,7 +169,8 @@ router.post('/order-request-pdf', authMiddleware, async (req: AuthenticatedReque
     const pdfBuffer = await generateOrderRequestPDF(
       products,
       user.name || user.email,
-      new Date()
+      new Date(),
+      notes || null
     );
 
     // Enviar por email

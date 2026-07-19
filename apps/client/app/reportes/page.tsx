@@ -23,6 +23,7 @@ interface Report {
   id: string;
   submittedBy: string;
   items: ReportItem[];
+  notes?: string | null;
   createdAt: string;
 }
 
@@ -263,6 +264,32 @@ export default function ReportesPage() {
                     {/* Desplegable Interno: Listado de Ítems */}
                     {isExpanded && (
                       <div className="border-t border-zinc-200 p-6! bg-white space-y-4! box-border animate-in fade-in duration-200">
+                        {/* Notas Generales del Reporte */}
+                        {report.notes && (
+                          <div className="mb-6 flex items-start gap-3 rounded-2xl bg-green-100 border border-green-600 p-4 text-sm text-green-950 shadow-sm">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              strokeWidth={2}
+                              stroke="currentColor"
+                              className="w-5 h-5 shrink-0 mt-0.5 text-green-950"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"
+                              />
+                            </svg>
+                            <div className="flex-1">
+                              <p className="font-bold">Notas del Reporte</p>
+                              <p className="text-xs text-green-950 mt-2 whitespace-pre-wrap">
+                                {report.notes}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
                         <h4 className="text-xs font-black uppercase tracking-widest text-zinc-400 pl-1!">
                           Productos en Alerta
                         </h4>
