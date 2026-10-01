@@ -6,6 +6,7 @@ import authRoutes from "./routes/auth.js";
 import suppliersRoutes from "./routes/suppliers.js";
 import productsRoutes from "./routes/products.js";
 import reportsRoutes from "./routes/reports.js";
+import receptionRoutes from "./routes/reception.js";
 
 const app: Express = express();
 const PORT = process.env.PORT || 8080;
@@ -24,6 +25,9 @@ app.use("/api/products", productsRoutes);
 
 // Rutas de reportes
 app.use("/api/reports", reportsRoutes);
+
+// Rutas de recepción
+app.use("/api/receptions", receptionRoutes);
 
 app.get("/", (req, res) => {
   res.send("Wake Stock Express + Prisma Server Running");
