@@ -76,7 +76,10 @@ model Product {
   // Relación Opcional con Proveedor
   supplierId   String?
   supplier     Supplier?     @relation(fields: [supplierId], references: [id], onDelete: SetNull)
-  
+
+  // Relación con Recepciones
+  receptions   Reception[]
+
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 
@@ -91,4 +94,18 @@ model ChecklistReport {
   createdAt   DateTime @default(now())
 
   @@map("checklist_reports")
+}
+
+model Reception {
+  id                String   @id @default(uuid())
+  productId         String
+  product           Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantityReceived  Float
+  notes             String?
+  receivedBy        String   // nombre del usuario que registró
+  receivedAt        DateTime @default(now())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("receptions")
 }
