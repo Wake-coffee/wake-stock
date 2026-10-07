@@ -30,10 +30,7 @@ export default function Header() {
       </div>
 
       {/* Avatar con Dropdown mejorado */}
-      <div
-        className="relative flex items-center"
-        style={{ marginRight: "8px" }}
-      >
+      <div className="relative flex items-center">
         <button
           onClick={() => setShowDropdown(!showDropdown)}
           className="h-10 w-10 rounded-full bg-white flex items-center justify-center text-xl hover:scale-105 active:scale-95 transition-all focus:outline-none cursor-pointer border-none shadow-md"

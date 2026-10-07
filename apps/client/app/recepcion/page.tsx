@@ -38,6 +38,8 @@ export default function RecepcionPage() {
   const [showHistory, setShowHistory] = useState(false);
   const [history, setHistory] = useState<Reception[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [searchInput, setSearchInput] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
 
   // Estado del formulario
   const [form, setForm] = useState({
@@ -47,6 +49,14 @@ export default function RecepcionPage() {
   });
 
   const isAdmin = user?.role === "ADMIN";
+
+  // Filtrar productos basado en búsqueda
+  const filteredProducts = products.filter((product) =>
+    product.name.toLowerCase().includes(searchInput.toLowerCase())
+  );
+
+  // Obtener producto seleccionado
+  const selectedProduct = products.find((p) => p.id === form.productId);
 
   // Cargar productos
   useEffect(() => {
@@ -86,8 +96,13 @@ export default function RecepcionPage() {
     setError(null);
     setSuccess(null);
 
-    if (!form.productId || !form.quantityReceived) {
-      setError("Por favor completa los campos requeridos");
+    if (!form.productId) {
+      setError("Por favor selecciona un producto");
+      return;
+    }
+
+    if (!form.quantityReceived) {
+      setError("Por favor ingresa la cantidad recibida");
       return;
     }
 
@@ -213,27 +228,68 @@ export default function RecepcionPage() {
 
           {/* Formulario */}
           <form onSubmit={handleSubmit} className="bg-white border border-zinc-200 rounded-[28px] p-6 sm:p-8 space-y-6 shadow-[0_4px_20px_rgba(0,0,0,0.02)] box-border mb-8">
-            <div>
+            <div className="relative">
               <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2 pl-1">
                 Buscar Producto *
               </label>
-              <select
-                value={form.productId}
-                onChange={(e) => setForm({ ...form, productId: e.target.value })}
-                className="w-full rounded-2xl bg-white border border-zinc-200 py-3 px-4 text-sm font-medium text-zinc-900 outline-none transition-all focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm cursor-pointer"
-              >
-                <option value="">-- Selecciona un producto --</option>
-                {products.map((product) => (
-                  <option key={product.id} value={product.id}>
-                    {product.name} ({product.supplier?.name || "Sin proveedor"})
-                  </option>
-                ))}
-              </select>
+              <input
+                type="text"
+                placeholder="Escribe el nombre del producto..."
+                value={selectedProduct ? selectedProduct.name : searchInput}
+                onChange={(e) => {
+                  setSearchInput(e.target.value);
+                  setForm({ ...form, productId: "" });
+                  setShowDropdown(true);
+                }}
+                onFocus={() => setShowDropdown(true)}
+                className="w-full rounded-2xl bg-white border border-zinc-200 py-3 px-4 text-sm font-medium text-zinc-900 placeholder-zinc-400 outline-none transition-all focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm"
+              />
+
+              {showDropdown && filteredProducts.length > 0 && !selectedProduct && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-zinc-200 rounded-2xl shadow-lg z-50 max-h-64 overflow-y-auto">
+                  {filteredProducts.map((product) => (
+                    <button
+                      key={product.id}
+                      type="button"
+                      onClick={() => {
+                        setForm({ ...form, productId: product.id });
+                        setSearchInput("");
+                        setShowDropdown(false);
+                      }}
+                      className="w-full px-4 py-3 text-left hover:bg-zinc-50 border-b border-zinc-100 last:border-b-0 transition-colors"
+                    >
+                      <p className="text-sm font-semibold text-zinc-900">
+                        {product.name} <span className="text-zinc-500">({product.unit})</span>
+                      </p>
+                      <p className="text-xs text-zinc-500 mt-0.5">
+                        {product.supplier?.name || "Sin proveedor"}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {showDropdown && selectedProduct && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-zinc-50 border border-zinc-200 rounded-2xl p-3 shadow-lg z-50">
+                  <p className="text-sm font-semibold text-zinc-900">
+                    {selectedProduct.name} <span className="text-zinc-500">({selectedProduct.unit})</span>
+                  </p>
+                  <p className="text-xs text-zinc-500 mt-1">
+                    {selectedProduct.supplier?.name || "Sin proveedor"}
+                  </p>
+                </div>
+              )}
+
+              {showDropdown && filteredProducts.length === 0 && searchInput && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-zinc-200 rounded-2xl shadow-lg z-50 p-4 text-center">
+                  <p className="text-sm text-zinc-500">No se encontraron productos</p>
+                </div>
+              )}
             </div>
 
             <div>
               <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2 pl-1">
-                Cantidad Recibida *
+                Cantidad Recibida {selectedProduct && <span className="text-zinc-900">({selectedProduct.unit})</span>} *
               </label>
               <input
                 type="number"
@@ -242,7 +298,8 @@ export default function RecepcionPage() {
                 placeholder="0"
                 value={form.quantityReceived}
                 onChange={(e) => setForm({ ...form, quantityReceived: e.target.value })}
-                className="w-full rounded-2xl bg-white border border-zinc-200 py-3 px-4 text-sm font-medium text-zinc-900 placeholder-zinc-400 outline-none transition-all focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm"
+                disabled={!selectedProduct}
+                className="w-full rounded-2xl bg-white border border-zinc-200 py-3 px-4 text-sm font-medium text-zinc-900 placeholder-zinc-400 outline-none transition-all focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm disabled:bg-zinc-50 disabled:cursor-not-allowed disabled:text-zinc-400"
               />
             </div>
 
