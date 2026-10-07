@@ -1,6 +1,17 @@
 import { Router, Response } from 'express';
 import { prisma } from '../prisma.js';
 import { authMiddleware, requireRole, AuthenticatedRequest } from '../middleware/auth.js';
+import { ProductStatus } from '@prisma/client';
+
+function determineStatus(stock: number, minQuantity: number): ProductStatus {
+  if (stock <= 0) {
+    return 'AGOTADO';
+  }
+  if (stock < minQuantity) {
+    return 'BAJO_STOCK';
+  }
+  return 'DISPONIBLE';
+}
 
 const router: Router = Router();
 
@@ -40,13 +51,15 @@ router.post('/', authMiddleware, async (req: AuthenticatedRequest, res: Response
       },
     });
 
-    // Actualizar stock del producto
+    // Actualizar stock e status del producto
+    const newStock = product.stock + parseFloat(String(quantityReceived));
+    const newStatus = determineStatus(newStock, product.minQuantity);
+
     await prisma.product.update({
       where: { id: productId },
       data: {
-        stock: {
-          increment: parseFloat(String(quantityReceived)),
-        },
+        stock: newStock,
+        status: newStatus,
       },
     });
 

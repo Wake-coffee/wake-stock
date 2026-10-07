@@ -10,7 +10,7 @@ function determineStatus(stock: number, minQuantity: number): ProductStatus {
   if (stock <= 0) {
     return 'AGOTADO';
   }
-  if (stock <= minQuantity) {
+  if (stock < minQuantity) {
     return 'BAJO_STOCK';
   }
   return 'DISPONIBLE';
