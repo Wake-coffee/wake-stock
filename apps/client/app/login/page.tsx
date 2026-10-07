@@ -112,7 +112,7 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full rounded-2xl border border-zinc-200 bg-white py-3! pl-11! pr-4! text-sm font-medium text-zinc-900 placeholder-zinc-400 outline-none transition-all duration-200 focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm"
+                  className="block w-full rounded-2xl border border-zinc-200 bg-white py-3! pl-11! pr-4! text-base font-medium text-zinc-900 placeholder-zinc-400 outline-none transition-all duration-200 focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm"
                   placeholder="admin@wake.com"
                 />
               </div>
@@ -151,7 +151,7 @@ export default function LoginPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full rounded-2xl border border-zinc-200 bg-white py-3! pl-11! pr-4! text-sm font-medium text-zinc-900 placeholder-zinc-400 outline-none transition-all duration-200 focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm"
+                  className="block w-full rounded-2xl border border-zinc-200 bg-white py-3! pl-11! pr-4! text-base font-medium text-zinc-900 placeholder-zinc-400 outline-none transition-all duration-200 focus:border-[#2B4236] focus:ring-1 focus:ring-[#2B4236] shadow-sm"
                   placeholder="••••••••"
                 />
               </div>
